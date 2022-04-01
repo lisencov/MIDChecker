@@ -12,13 +12,13 @@ func routes(_ app: Application) throws {
     app.get("goodbyy") { req -> String in
         return "Goodby"
     }
-        
-    app.get("check") { req async throws -> String in
+    
+    app.get("check") { req async throws -> CheckResult in
         guard let id = req.query[Int.self, at: "id"],
-        let secureCode = req.query[String.self, at: "sec"] else {
+              let secureCode = req.query[String.self, at: "sec"] else {
             throw Abort(.custom(code: 400, reasonPhrase: "id and sec are required"))
         }
         
-        return try await CalendarChecker(userID: id, secCode: secureCode, client: app.client).check()
+        return try await CalendarChecker(userID: id, secCode: secureCode, client: req.client).check()
     }
 }

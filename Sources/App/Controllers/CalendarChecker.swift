@@ -11,13 +11,13 @@ import SwiftSoup
 
 final class CalendarChecker {
     
-    private let client: Client
+    private let client: MIDClient
     private let userID: Int
     private let secCode: String
     private lazy var captchaSolver = CaptchaSolver()
-    
+        
     init(userID: Int, secCode: String, client: Client) {
-        self.client = client
+        self.client = MIDClient(clien: client)
         self.userID = userID
         self.secCode = secCode
     }
@@ -28,9 +28,11 @@ final class CalendarChecker {
         }
     }
     
-    func check() async throws -> String {
-        let nexDocument = try await self.passCaptcha(userID: self.userID, secCode: self.secCode)
-        return "OK"
+    func check() async throws -> CheckResult {
+        let uselessDocument = try await self.passCaptcha(userID: self.userID, secCode: self.secCode)
+        try await Task.sleep(nanoseconds: 1500000000)
+        let calendarDocument = try await self.passUselessDocument(uselessDocument)
+        return try self.checkCalendarDocument(calendarDocument)
     }
     
     // MARK: - Captcha Step
@@ -52,8 +54,22 @@ final class CalendarChecker {
     
     private func sendCaptchaForm(_ captchaForm: CaptchaFormModel) async throws -> Document {
         let response = try await self.client.post(Constants.captchaLink(userID: self.userID, secCode: self.secCode),
-                                                  headers: .init([]),
+                                                  headers: [:],
                                                   content: captchaForm)
         return try MIDParses.getDocument(from: response)
+    }
+    
+    // MARK: - Useless Document Step
+    
+    private func passUselessDocument(_ document: Document) async throws -> Document {
+        let uselessForm = try MIDParses.uselessPageFormData(for: document)
+        let response = try await self.client.post(Constants.captchaLink(userID: userID, secCode: secCode), headers: [:], content: uselessForm)
+        return try MIDParses.getDocument(from: response)
+    }
+    
+    // MARK: - Calendar Document Step
+    
+    private func checkCalendarDocument(_ document: Document) throws -> CheckResult {
+        return try MIDParses.parseCalendarDocument(from: document)
     }
 }

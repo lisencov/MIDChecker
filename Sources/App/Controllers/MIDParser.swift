@@ -13,7 +13,8 @@ final class MIDParses {
     
     private struct Constants {
         static let captchaBaseURL = "https://bishkek.kdmid.ru/queue/"
-        static let captchaID = "#ctl00_MainContent_imgSecNum"
+        static let captchaID = "ctl00_MainContent_imgSecNum"
+        static let calendarID = "ctl00_MainContent_Calendar"
     }
     
     public static func getDocument(from response: ClientResponse) throws -> Document {
@@ -33,9 +34,20 @@ final class MIDParses {
     }
     
     public static func parseCaptchaLink(from document: Document) throws -> String {
-        let captchaElement = try document.select(Constants.captchaID)
+        let captchaElement = try document.select(id: Constants.captchaID)
         let href = try captchaElement.attr("src")
         return Constants.captchaBaseURL + href
+    }
+    
+    public static func parseCalendarDocument(from document: Document) throws -> CheckResult {
+        print(try document.html())
+        guard let calendar = try document.select(id: Constants.calendarID).first() else {
+            throw Abort(.custom(code: 400, reasonPhrase: "Can't find calendar element on page"))
+        }
+        
+        let attributeValue = (try? calendar.attr("disabled")) ?? ""
+        let status: CheckResult.Status = attributeValue == "disabled" ? .notAvailable : .available
+        return CheckResult(status: status)
     }
     
     public static func capthchaFormData(for document: Document,
@@ -58,6 +70,30 @@ final class MIDParses {
                                 viewStateGenerator: viewStateGenerator,
                                 eventValidation: eventValidation,
                                 buttonText: "Далее")
+    }
+    
+    public static func uselessPageFormData(for document: Document) throws -> UselessPageFormModel {
+        let selector = Selector<UselessPageFormModel.CodingKeys>(document: document)
+        guard let viewState = try selector.first(.viewState),
+              let viewStateGenerator = try selector.first(.viewStateGenerator),
+              let eventValidator = try selector.first(.eventValidation) else {
+                  throw Abort(.custom(code: 400, reasonPhrase: "Can't read useless form data"))
+              }
+        
+        return UselessPageFormModel(viewState: viewState, viewStateGenerator: viewStateGenerator, eventValidation: eventValidator)
+    }
+}
+
+class Selector<T: CodingKey> {
+    
+    private let document: Document
+    
+    init(document: Document) {
+        self.document = document
+    }
+    
+    func first(_ key: T) throws -> String? {
+        return try self.document.selectFirst(key)
     }
 }
 

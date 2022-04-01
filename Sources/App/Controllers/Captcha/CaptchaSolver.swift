@@ -11,9 +11,9 @@ import Vapor
 final class CaptchaSolver {
     
     private struct Constants {
-        static let solverCreateURI = URI(string: "https://api.anycaptcha.com/createTask")
-        static let solverCheckURI = URI(string: "https://api.anycaptcha.com/getTaskResult")
-        static let apiKey = "3f71851a2e21414db551cdbd6dd57c54"
+        static let solverCreateURI = URI(string: "http://azcaptcha.com/in.php")
+        static let solverCheckURI = URI(string: "http://azcaptcha.com/res.php")
+        static let apiKey = "7txymfwqrcv6dnkdjgkhrtczg43qwpfb"
     }
     
     public func solveCaptcha(url: String, client: Client) async throws -> String {
@@ -34,11 +34,15 @@ final class CaptchaSolver {
     ///   - client: HTTP client.
     /// - Returns: TaskID
     private func createTask(base64Image: String, client: Client) async throws -> Int {
-        let content = AnyCaptchaTaskModel(clientKey: Constants.apiKey, base64Image: base64Image)
+        let content = AnyCaptchaTaskModel(key: Constants.apiKey, body: base64Image)
         let response = try await client.post(Constants.solverCreateURI, content: content)
-        let result = try response.content.decode(AnyCaptchaCreatedTaskModel.self)
         
-        guard let taskID = result.taskId else {
+        guard let bufferBytes = response.body else {
+            throw Abort(.custom(code: 400, reasonPhrase: "Unknown error while creating solving task"))
+        }
+        let result = try JSONDecoder().decode(AnyCaptchaCreatedTaskModel.self, from: bufferBytes)
+        
+        guard let taskID = result.request else {
             throw Abort(.custom(code: 400, reasonPhrase: result.errorDescription ?? "Unknown error while creating solving task"))
         }
         
@@ -46,20 +50,21 @@ final class CaptchaSolver {
     }
     
     private func checkResult(taskID: Int, client: Client) async throws -> String {
-        try await Task.sleep(nanoseconds: 2000000)
-        let content = AnyCaptchaCheckModel(clientKey: Constants.apiKey, taskId: taskID)
+        try await Task.sleep(nanoseconds: 1000000000)
+        let content = AnyCaptchaCheckModel(key: Constants.apiKey, id: taskID)
         let response = try await client.post(Constants.solverCheckURI, content: content)
-        let result = try response.content.decode(AnyCaptchaResultModel.self)
         
-        guard let status = result.status else {
-            throw Abort(.custom(code: 400, reasonPhrase: result.errorDescription ?? "Unknown error while processing solving task"))
+        guard let biteBuffer = response.body else {
+            throw Abort(.custom(code: 400, reasonPhrase: "Empty response body after cpatcha check"))
         }
-        
-        switch status {
+        let result = AnyCaptchaResultModel.fromBiteBuffer(biteBuffer)
+        switch result.status {
         case .processing:
             return try await self.checkResult(taskID: taskID, client: client)
-        case .ready:
-            return result.solution?.text ?? ""
+        case .error(let descript):
+            throw Abort(.custom(code: 400, reasonPhrase: descript))
+        case .ready(let result):
+            return result
         }
     }
     

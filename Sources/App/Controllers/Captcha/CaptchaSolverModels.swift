@@ -10,44 +10,69 @@ import Vapor
 
 struct AnyCaptchaTaskModel: Content {
     
-    struct Task: Codable {
-        let type = "ImageToTextTask"
-        let body: String
+    let key: String
+    let method: String
+    let body: String
+    let json: Int
+    
+    static var defaultContentType: HTTPMediaType {
+        return .formData
     }
     
-    let clientKey: String
-    let task: Task
-    
-    init(clientKey: String, base64Image: String) {
-        self.clientKey = clientKey
-        self.task = Task(body: base64Image)
+    init(key: String, body: String) {
+        self.key = key
+        self.body = body
+        self.method = "base64"
+        self.json = 1
     }
-    
 }
 
 struct AnyCaptchaCreatedTaskModel: Decodable {
-    let taskId: Int?
+    let request: Int?
     let errorDescription: String?
 }
 
 struct AnyCaptchaCheckModel: Content {
-    let clientKey: String
-    let taskId: Int
+    let key: String
+    let id: Int
+    var action = "get"
+    var json = 1
     
+    static var defaultContentType: HTTPMediaType {
+        return .formData
+    }
 }
 
-struct AnyCaptchaResultModel: Decodable {
+struct AnyCaptchaResultModel {
     
-    struct Solution: Decodable {
-        let text: String
+    private struct Success: Decodable {
+        let status: Int
+        let request: String
     }
     
-    enum Status: String, Decodable {
-        case ready
+    enum Status {
+        case ready(result: String)
         case processing
+        case error(descript: String)
     }
     
-    let status: Status?
-    let solution: Solution?
-    let errorDescription: String?
+    let status: Status
+    
+    static func fromBiteBuffer(_ biteBuffer: ByteBuffer) -> AnyCaptchaResultModel {
+        do {
+            let result = try JSONDecoder().decode(Success.self, from: biteBuffer)
+            if result.status == 1 {
+                return AnyCaptchaResultModel(status: .ready(result: result.request))
+            } else {
+                return AnyCaptchaResultModel(status: .processing)
+            }
+        } catch {
+            let plainText = String(buffer: biteBuffer)
+            if plainText == "CAPCHA_NOT_READY" {
+                return AnyCaptchaResultModel(status: .processing)
+            } else {
+                return AnyCaptchaResultModel(status: .error(descript: plainText))
+            }
+        }
+    }
 }
