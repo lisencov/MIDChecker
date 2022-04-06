@@ -9,7 +9,10 @@ import Foundation
 import SwiftSoup
 import Vapor
 
+/// Parse data on Kyrgiz MID service.
 final class MIDParses {
+    
+    // MARK: - Constants
     
     private struct Constants {
         static let captchaBaseURL = "https://bishkek.kdmid.ru/queue/"
@@ -17,6 +20,12 @@ final class MIDParses {
         static let calendarID = "ctl00_MainContent_Calendar"
     }
     
+    // MARK: - Public
+    
+    /// Parse SwiftSoup.Document from Response.
+    ///
+    /// - Parameter response: Server response.
+    /// - Returns: Parsed SwiftSoup.Document.
     public static func getDocument(from response: ClientResponse) throws -> Document {
         guard let byteBuffer = response.body else {
             throw Abort(.custom(code: 400, reasonPhrase: "Can't read biteBuffer"))
@@ -25,20 +34,22 @@ final class MIDParses {
         return try MIDParses.getDocument(from: responseData)
     }
     
-    public static func getDocument(from data: Data) throws -> Document {
-        guard let stringFromData = String(data: data, encoding: .utf8) else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Can't read captcha data"))
-        }
-        
-        return try SwiftSoup.parse(stringFromData)
-    }
-    
+    /// Parse html document with Captcha.
+    /// Will throw if document doesn't have captcha element.
+    ///
+    /// - Parameter document: SwiftSoup.Document
+    /// - Returns: Actual captchas image link.
     public static func parseCaptchaLink(from document: Document) throws -> String {
         let captchaElement = try document.select(id: Constants.captchaID)
         let href = try captchaElement.attr("src")
         return Constants.captchaBaseURL + href
     }
     
+    /// Parse html document with Calendar.
+    /// Will throw if document doesn't have Calendar element.
+    ///
+    /// - Parameter document: SwiftSoup.Document
+    /// - Returns: Result of parsing. It will be success if calendar element doesn't have disabled attribute.
     public static func parseCalendarDocument(from document: Document) throws -> CheckResult {
         print(try document.html())
         guard let calendar = try document.select(id: Constants.calendarID).first() else {
@@ -50,6 +61,14 @@ final class MIDParses {
         return CheckResult(status: status)
     }
     
+    /// Build encodable model for captchas checking request.
+    ///
+    /// - Parameters:
+    ///   - document: Original document with captcha. It contains service information.
+    ///   - userID: Client ID.
+    ///   - secureCode: Client secure code.
+    ///   - captcha: Solved captcha.
+    /// - Returns: Encodable form model.
     public static func capthchaFormData(for document: Document,
                                         userID: String,
                                         secureCode: String,
@@ -72,6 +91,10 @@ final class MIDParses {
                                 buttonText: "Далее")
     }
     
+    /// Build encodable model for useless page.
+    ///
+    /// - Parameter document: Original useless page document. It contains service information.
+    /// - Returns: Encodable form model.
     public static func uselessPageFormData(for document: Document) throws -> UselessPageFormModel {
         let selector = Selector<UselessPageFormModel.CodingKeys>(document: document)
         guard let viewState = try selector.first(.viewState),
@@ -82,9 +105,19 @@ final class MIDParses {
         
         return UselessPageFormModel(viewState: viewState, viewStateGenerator: viewStateGenerator, eventValidation: eventValidator)
     }
+    
+    // MARK: - Private
+    
+    private static func getDocument(from data: Data) throws -> Document {
+        guard let stringFromData = String(data: data, encoding: .utf8) else {
+            throw Abort(.custom(code: 400, reasonPhrase: "Can't read captcha data"))
+        }
+        
+        return try SwiftSoup.parse(stringFromData)
+    }
 }
 
-class Selector<T: CodingKey> {
+private class Selector<T: CodingKey> {
     
     private let document: Document
     
@@ -97,7 +130,7 @@ class Selector<T: CodingKey> {
     }
 }
 
-extension Document {
+private extension Document {
     
     func selectFirst(_ codingKey: CodingKey) throws -> String? {
         return try self.select(codingKey).first()?.attr("value")

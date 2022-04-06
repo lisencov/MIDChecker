@@ -8,6 +8,7 @@
 import Foundation
 import Vapor
 
+/// Server-side captcha model for posting a form.
 struct CaptchaFormModel: Codable {
     
     let userID: String

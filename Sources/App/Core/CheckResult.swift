@@ -8,6 +8,7 @@
 import Foundation
 import Vapor
 
+/// Result of checking booking availability.
 struct CheckResult: Encodable {
     
     enum Status: String, Encodable {

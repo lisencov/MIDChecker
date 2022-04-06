@@ -8,6 +8,7 @@
 import Foundation
 import Vapor
 
+/// Model for creating solving task.
 struct AnyCaptchaTaskModel: Content {
     
     let key: String
@@ -27,11 +28,13 @@ struct AnyCaptchaTaskModel: Content {
     }
 }
 
+/// Created task model.
 struct AnyCaptchaCreatedTaskModel: Decodable {
     let request: Int?
     let errorDescription: String?
 }
 
+/// Model for checking by task ID.
 struct AnyCaptchaCheckModel: Content {
     let key: String
     let id: Int
@@ -43,6 +46,7 @@ struct AnyCaptchaCheckModel: Content {
     }
 }
 
+/// Check result model.
 struct AnyCaptchaResultModel {
     
     private struct Success: Decodable {

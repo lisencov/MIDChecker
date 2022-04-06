@@ -8,7 +8,10 @@
 import Foundation
 import Vapor
 
-final class MIDClient: Client {
+/// Proxy HTTP Client that saves cookies during one parsing session.
+final class MIDProxyClient: Client {
+    
+    // MARK: - Private
     
     private let client: Client
     private var cookie: HTTPCookies = [:]
@@ -17,9 +20,16 @@ final class MIDClient: Client {
         return client.eventLoop
     }
     
+    // MARK: - Init
+    
+    /// Initialize.
+    ///
+    /// - Parameter clien: Original client.
     init(clien: Client) {
         self.client = clien
     }
+    
+    // MARK: - Client
     
     func delegating(to eventLoop: EventLoop) -> Client {
         return self.client.delegating(to: eventLoop)
@@ -35,6 +45,8 @@ final class MIDClient: Client {
         }
         return response
     }
+    
+    // MARK: - Private
     
     private func mergeCookies(old: HTTPCookies, new: HTTPCookies?) -> HTTPCookies {
         guard let new = new, !new.all.isEmpty else {

@@ -8,14 +8,25 @@
 import Foundation
 import Vapor
 
+/// Client for AZ Captcha. Solves gotten image.
 final class CaptchaSolver {
+    
+    // MARK: - Constants
     
     private struct Constants {
         static let solverCreateURI = URI(string: "http://azcaptcha.com/in.php")
         static let solverCheckURI = URI(string: "http://azcaptcha.com/res.php")
-        static let apiKey = "7txymfwqrcv6dnkdjgkhrtczg43qwpfb"
+        static let apiKey = ""
     }
     
+    // MARK: - Public
+    
+    /// Solve captcha by image URL.
+    ///
+    /// - Parameters:
+    ///   - url: Captcha image url.
+    ///   - client: HTTP client.
+    /// - Returns: String with answer.
     public func solveCaptcha(url: String, client: Client) async throws -> String {
         let base64Image = try await self.getBase64Image(url: URI(string: url), client: client)
         return try await self.solve(base64Image: base64Image, client: client)
@@ -29,6 +40,7 @@ final class CaptchaSolver {
     }
     
     /// Create task at solving service.
+    /// 
     /// - Parameters:
     ///   - base64Image: Encoded image.
     ///   - client: HTTP client.
