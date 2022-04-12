@@ -39,6 +39,11 @@ func routes(_ app: Application) throws {
         try await TelegramBot(client: req.client).sendResult(message: message)
         return message
     }
+    
+    app.get("config") { req async throws -> String in
+        let string = Environment.get("test")
+        return string ?? "NOT FOUND"
+    }
 }
 
 private func checkPassport(request: Request) async throws -> CheckResult {
