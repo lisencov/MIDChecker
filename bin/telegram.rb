@@ -5,6 +5,5 @@ require 'net/http'
 
 puts "Cleaning old sessions..."
 
-uri = URI('https://kyrgyzpassport.herokuapp.com/')
+uri = URI('https://kyrgyzpassport.herokuapp.com/telegram')
 res = Net::HTTP.get_response(uri)
-puts res.body if res.is_a?(Net::HTTPSuccess)
