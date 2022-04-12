@@ -16,7 +16,7 @@ final class CaptchaSolver {
     private struct Constants {
         static let solverCreateURI = URI(string: "http://azcaptcha.com/in.php")
         static let solverCheckURI = URI(string: "http://azcaptcha.com/res.php")
-        static let apiKey = ""
+        static let apiKey = "kr2ppywr4gjdv78qgzxhffhvnqmbtzxd"
     }
     
     // MARK: - Public
