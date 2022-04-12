@@ -51,7 +51,6 @@ final class MIDParses {
     /// - Parameter document: SwiftSoup.Document
     /// - Returns: Result of parsing. It will be success if calendar element doesn't have disabled attribute.
     public static func parseCalendarDocument(from document: Document) throws -> CheckResult {
-        print(try document.html())
         guard let calendar = try document.select(id: Constants.calendarID).first() else {
             throw Abort(.custom(code: 400, reasonPhrase: "Can't find calendar element on page"))
         }

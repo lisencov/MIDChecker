@@ -27,9 +27,9 @@ final class TelegramBot {
     
     // MARK: - Public
     
-    func sendResult(message: String) async throws {
+    func sendResult(message: String, isSilent: Bool) async throws {
         let uri = Constants.baseURI + Configuration.telegramAPIKey.value + Constants.messageAction
-        let messageModel = TelegramMessageModel(chatId: Configuration.telegramChatID.value, text: message)
+        let messageModel = TelegramMessageModel(chatId: Configuration.telegramChatID.value, text: message, isSilent: isSilent)
         let result = try await client.post(URI(string: uri), content: messageModel)
         
     }

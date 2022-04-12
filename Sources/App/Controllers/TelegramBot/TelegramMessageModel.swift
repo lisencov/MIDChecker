@@ -11,6 +11,7 @@ import Vapor
 struct TelegramMessageModel: Content {
     let chatId: String
     let text: String
+    let isSilent: Bool
     
     static var defaultContentType: HTTPMediaType {
         return .json
@@ -19,5 +20,6 @@ struct TelegramMessageModel: Content {
     enum CodingKeys: String, CodingKey {
         case chatId = "chat_id"
         case text = "text"
+        case isSilent = "disable_notification"
     }
 }

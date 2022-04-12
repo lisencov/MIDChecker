@@ -12,14 +12,17 @@ func routes(_ app: Application) throws {
     
     app.get("telegram") { req async throws -> String in
         let message: String
+        let isSilent: Bool
         do {
             let result = try await checkPassport(request: req)
+            isSilent = result.isSilent
             message = result.message
         } catch(let error) {
+            isSilent = false
             message = error.localizedDescription
         }
         
-        try await TelegramBot(client: req.client).sendResult(message: message)
+        try await TelegramBot(client: req.client).sendResult(message: message, isSilent: isSilent)
         return message
     }
     
@@ -28,7 +31,7 @@ func routes(_ app: Application) throws {
             throw Abort(.custom(code: 400, reasonPhrase: "message is required"))
         }
         
-        try await TelegramBot(client: req.client).sendResult(message: message)
+        try await TelegramBot(client: req.client).sendResult(message: message, isSilent: true)
         return message
     }
 }
