@@ -13,9 +13,7 @@ final class TelegramBot {
     // MARK: - Private
     
     private struct Constants {
-        static let baseURI = "https://api.telegram.org/"
-        static let chatID = "-795285272"
-        static let botToken = "bot5254003890:AAGxGkdT3pxm0FFc4rDkNYbJFBMej9nqXm4"
+        static let baseURI = "https://api.telegram.org/bot"
         static let messageAction = "/sendMessage"
     }
     
@@ -30,8 +28,8 @@ final class TelegramBot {
     // MARK: - Public
     
     func sendResult(message: String) async throws {
-        let uri = Constants.baseURI + Constants.botToken + Constants.messageAction
-        let messageModel = TelegramMessageModel(chatId: Constants.chatID, text: message)
+        let uri = Constants.baseURI + Configuration.telegramAPIKey.value + Constants.messageAction
+        let messageModel = TelegramMessageModel(chatId: Configuration.telegramChatID.value, text: message)
         let result = try await client.post(URI(string: uri), content: messageModel)
         
     }

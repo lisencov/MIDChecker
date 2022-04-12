@@ -7,6 +7,7 @@
 
 import Foundation
 import Vapor
+import AsyncHTTPClient
 
 /// Client for AZ Captcha. Solves gotten image.
 final class CaptchaSolver {
@@ -16,7 +17,6 @@ final class CaptchaSolver {
     private struct Constants {
         static let solverCreateURI = URI(string: "http://azcaptcha.com/in.php")
         static let solverCheckURI = URI(string: "http://azcaptcha.com/res.php")
-        static let apiKey = "kr2ppywr4gjdv78qgzxhffhvnqmbtzxd"
     }
     
     // MARK: - Public
@@ -46,7 +46,7 @@ final class CaptchaSolver {
     ///   - client: HTTP client.
     /// - Returns: TaskID
     private func createTask(base64Image: String, client: Client) async throws -> Int {
-        let content = AnyCaptchaTaskModel(key: Constants.apiKey, body: base64Image)
+        let content = AnyCaptchaTaskModel(key: Configuration.solverAPIKey.value, body: base64Image)
         let response = try await client.post(Constants.solverCreateURI, content: content)
         
         guard let bufferBytes = response.body else {
@@ -63,7 +63,7 @@ final class CaptchaSolver {
     
     private func checkResult(taskID: Int, client: Client) async throws -> String {
         try await Task.sleep(nanoseconds: 1000000000)
-        let content = AnyCaptchaCheckModel(key: Constants.apiKey, id: taskID)
+        let content = AnyCaptchaCheckModel(key: Configuration.solverAPIKey.value, id: taskID)
         let response = try await client.post(Constants.solverCheckURI, content: content)
         
         guard let biteBuffer = response.body else {
