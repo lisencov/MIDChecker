@@ -35,7 +35,7 @@ final class CalendarChecker {
     ///   - secCode: Client secure code.
     ///   - client: HTTP client.
     init(userID: Int, secCode: String, client: Client) {
-        self.client = MIDClient(clien: client)
+        self.client = MIDProxyClient(clien: client)
         self.userID = userID
         self.secCode = secCode
     }
