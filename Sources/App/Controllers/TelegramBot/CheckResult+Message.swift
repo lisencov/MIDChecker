@@ -12,9 +12,9 @@ extension CheckResult {
     func message(clienID: String, secCode: String) -> String {
         switch self.status {
         case .available:
-            return "!!! ВОЗМОЖНО ПОЯВИЛАСЬ ЗАПИСЬ, БЕГОМ ТУДА !!! \n Ccылка: http://bishkek.kdmid.ru/queue/OrderInfo.aspx?id=\(clienID)&cd=\(secCode) \n Время проверки: \(Date.now)"
+            return "!!! ВОЗМОЖНО ПОЯВИЛАСЬ ЗАПИСЬ, БЕГОМ ТУДА !!! \n Ccылка: http://bishkek.kdmid.ru/queue/OrderInfo.aspx?id=\(clienID)&cd=\(secCode) \n Время проверки: \(Date())"
         case .notAvailable:
-            return "Записи нет. \n Время проверки: \(Date.now)"
+            return "Записи нет. \n Время проверки: \(Date())"
         }
     }
 }
