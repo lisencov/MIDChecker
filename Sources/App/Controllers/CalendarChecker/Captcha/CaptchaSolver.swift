@@ -53,7 +53,7 @@ final class CaptchaSolver {
             throw Abort(.custom(code: 400, reasonPhrase: "Unknown error while creating solving task"))
         }
         let result = try JSONDecoder().decode(AnyCaptchaCreatedTaskModel.self, from: bufferBytes)
-        
+
         guard let taskID = result.request else {
             throw Abort(.custom(code: 400, reasonPhrase: result.errorDescription ?? "Unknown error while creating solving task"))
         }

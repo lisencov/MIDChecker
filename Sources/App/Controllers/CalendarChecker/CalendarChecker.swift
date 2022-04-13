@@ -59,6 +59,12 @@ final class CalendarChecker {
         return try self.checkCalendarDocument(calendarDocument)
     }
     
+    func checkTestPage(fileIO: FileIO) async throws -> CheckResult {
+        let fileData = try await self.fileData(from: "Public/ZagsTestPage.html", fileIO: fileIO)
+        let document = try MIDParses.getDocument(from: fileData)
+        return try self.checkCalendarDocument(document)
+    }
+    
     // MARK: - Captcha Step
     
     /// Returns next page if captcha passes success.
@@ -98,5 +104,12 @@ final class CalendarChecker {
     
     private func checkCalendarDocument(_ document: Document) throws -> CheckResult {
         return try MIDParses.parseCalendarDocument(from: document)
+    }
+    
+    // MARK: - Files
+    
+    private func fileData(from fileURI: String, fileIO: FileIO) async throws -> Data {
+        let byteBuffer = try await fileIO.collectFile(at: fileURI)
+        return Data(buffer: byteBuffer)
     }
 }

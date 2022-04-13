@@ -34,6 +34,10 @@ func routes(_ app: Application) throws {
         try await TelegramBot(client: req.client).sendResult(message: message, isSilent: true)
         return message
     }
+    
+    app.get("testCalendar") { req async throws -> CheckResult in
+        try await CalendarChecker(userID: 0, secCode: "", client: req.client).checkTestPage(fileIO: req.fileio)
+    }
 }
 
 private func checkPassport(request: Request) async throws -> CheckResult {

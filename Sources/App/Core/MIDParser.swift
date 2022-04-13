@@ -34,6 +34,15 @@ final class MIDParses {
         return try MIDParses.getDocument(from: responseData)
     }
     
+    
+    static func getDocument(from data: Data) throws -> Document {
+        guard let stringFromData = String(data: data, encoding: .utf8) else {
+            throw Abort(.custom(code: 400, reasonPhrase: "Can't read captcha data"))
+        }
+        
+        return try SwiftSoup.parse(stringFromData)
+    }
+    
     /// Parse html document with Captcha.
     /// Will throw if document doesn't have captcha element.
     ///
@@ -103,16 +112,6 @@ final class MIDParses {
               }
         
         return UselessPageFormModel(viewState: viewState, viewStateGenerator: viewStateGenerator, eventValidation: eventValidator)
-    }
-    
-    // MARK: - Private
-    
-    private static func getDocument(from data: Data) throws -> Document {
-        guard let stringFromData = String(data: data, encoding: .utf8) else {
-            throw Abort(.custom(code: 400, reasonPhrase: "Can't read captcha data"))
-        }
-        
-        return try SwiftSoup.parse(stringFromData)
     }
 }
 
